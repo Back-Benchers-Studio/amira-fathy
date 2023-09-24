@@ -66,6 +66,7 @@ const createCheckOutSession = catchAsyncError(async (req, res, next) => {
     const totalOrderPrice = cart.totalPriceAfterDiscount ?
         cart.totalPriceAfterDiscount : cart.totalPrice
 
+    const { street, city, phone } = req.body.shippingAddress;    
     let session = await stripe.checkout.sessions.create({
         line_items: [
             {
@@ -84,6 +85,14 @@ const createCheckOutSession = catchAsyncError(async (req, res, next) => {
         cancel_url: "https://youtube.com/", // will change
         customer_email: req.user.email,
         client_reference_id: req.params.id,
+        shipping_address_collection: {
+            allowed_countries: ['EG'], // Specify the allowed countries for shipping
+        },
+        // shipping_address: {
+        //     line1: street,
+        //     city,
+        //     phone,
+        // },
         metadata: req.body.shippingAddress
     })
     res.json({ message: "success", session })

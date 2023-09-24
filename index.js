@@ -1,8 +1,11 @@
 import express from 'express'
+import passport from 'passport'
 import dotenv from "dotenv"
 import morgan from "morgan";
 import dbConnection from './DB/DBConnection.js'
 import { init } from './src/modules/index.routes.js';
+
+import * as passportSetup from './src/utils/passportSetup.js'
 import Stripe from 'stripe';
 const stripe = new Stripe('sk_test_51M6FiXIjUf20zM1DKQHQUeoevfN2Y2TiS0HJzSdJcc4gu5AYarmmHJk8Y5iMH4lEwW1l7bgs7jCqRA4LvROuLHcd00OIA0P6BL');
 
@@ -25,7 +28,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
         event = stripe.webhooks.constructEvent(
             req.body,
             signature,
-            "whsec_cVvGsj3dDoyMiYLzO5Y1ztEZyV15mTM0"
+            "whsec_cVvGsj3dDoyMiYLzO5Y1ztEZyV15mTM0"//end point secret
         );
     } catch (err) {
         console.log(err);
@@ -78,6 +81,44 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     // // Return a 200 response to acknowledge receipt of the event
     // res.status(200).json({message:"success"});
 });
+
+app.use(passport.initialize()) // to initialize passport
+
+// route to google login
+app.get("/google", passport.authenticate('google', { scope: ['profile', 'email'] }))
+
+app.get('/fail', (req, res) => {
+    return res.json({ message: "Fail to login" })
+})
+
+app.get("/google/callback", passport.authenticate('google', { failureRedirect: '/fail' }),
+    async (req, res, next) => {
+        const { provider, displayName, given_name, family_name,
+            email_verified, email, picture } = req.user
+
+        if (!email_verified) {
+            return res.json({ message: "In-valid Google Account" })
+        }
+
+        const user = await userModel.findOne({ email })
+        if (user) {
+            const token = jwt.sign({ id: user._id, isLoggedIn: true },  // in case of login
+                 'SocialLogin')
+            return res.json({ message: "Done", token , socialType:"login" })// if email already exists
+        }
+
+        //in case of signup
+        const newUser = await userModel.create({
+            name: displayName,
+            email,
+            profilePic: picture,
+            verified: true,
+           
+        })
+        const token = jwt.sign({ id: newUser._id, isLoggedIn: true }, 'SocialLogin')
+        return res.json({ message: "Done", token  , socialType:"Sign UP" })
+    })
+app.get('/', (req, res) => res.render("index.ejs"))
 app.use(express.json())
 app.use(express.static('uploads'))
 if (process.env.MODE == 'development') {
@@ -87,5 +128,8 @@ if (process.env.MODE == 'development') {
 
 
 init(app)
+
+
+
 dbConnection()
 app.listen(process.env.PORT || port, () => console.log(`Example app listening on port ${port}!`))

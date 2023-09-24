@@ -13,10 +13,16 @@ const orderSchema = mongoose.Schema({
     ],
     totalOderPrice: Number,
     shippingAddress: {
-        street: String,
-        city: String,
-        phone: String
-    },
+        street: { type: String, required: [true, 'Street is required'] },
+        city: { type: String, required: [true, 'City is required'] },
+        phone: { type: String, required: [true, 'Phone is required'] }
+      },
+    // shippingAddress: {
+    //     street: String,
+    //     city: String,
+    //     phone: String,
+    //     required: [true, 'shipping address is required']
+    // },
     paymentMethod: {
         type: String,
         enum: ['card', 'cash'],

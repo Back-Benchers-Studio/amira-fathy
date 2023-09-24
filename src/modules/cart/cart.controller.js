@@ -4,6 +4,7 @@ import { AppError } from "../../utils/AppError.js";
 import { ApiFeatures } from "../../utils/ApiFeatures.js";
 import { cartModel } from "../../../DB/models/cart.model.js";
 import { productModel } from "../../../DB/models/product.model.js";
+import { couponModel } from "../../../DB/models/coupon.model.js";
 
 // to calculate the price of items in the cart
 function calcTotalPrice(cart) {
@@ -42,7 +43,7 @@ const addProductToCart = catchAsyncError(async (req, res, next) => {
     }
 
     await isCartExist.save()
-    res.status(201).json({ message: "add to cart", cart: isCartExist })
+    res.status(201).json({ message: "added to cart", cart: isCartExist })
 
 })
 // remove item from cart
@@ -82,7 +83,7 @@ const updateQuantity = catchAsyncError(async (req, res, next) => {
 
 
 const applyCoupon = catchAsyncError(async (req, res, next) => {
-    // let coupon = await couponModel.findOne({ code: req.body.code, expires: { $gt: Date.now() } })
+    let coupon = await couponModel.findOne({ code: req.body.code, expires: { $gt: Date.now() } })
     let cart = await cartModel.findOne({ user: req.user._id })
 
     cart.totalPriceAfterDiscount = cart.totalPrice - (cart.totalPrice * coupon.discount) / 100

@@ -41,17 +41,17 @@ const userSchema = mongoose.Schema({
         type: Boolean,
         default: false
     },
-    // wishlist: [{  // in progress
-    //     type: mongoose.SchemaTypes.ObjectId,
-    //     ref: 'product'
-    // }],
-    addresses:[
-        {
-            street:String,
-            city:String,
-            phone:String
-        }
-    ]
+    favlist: [{  
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: 'product'
+    }],
+    // addresses:[ // may be removed
+    //     {
+    //         street:String,
+    //         city:String,
+    //         phone:String
+    //     }
+    // ]
 }, { timestamps: true })
 
 userSchema.pre('save', function () {

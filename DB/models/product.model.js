@@ -19,10 +19,10 @@ const productSchema = mongoose.Schema({
         required: [true, 'product price is required.'],
         min: 0
     },
-    // priceAfterDiscount: {  // in progress
-    //     type: Number,
-    //     min: 0
-    // },
+    priceAfterDiscount: {  // in progress
+        type: Number,
+        min: 0
+    },
     // ratingAvg: {
     //     type: Number,
     //     min: [1, 'rating average must be greater then 1'],
