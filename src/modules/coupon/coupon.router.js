@@ -8,7 +8,7 @@ const couponRouter = express.Router()
 // Router.use(protectedRoutes, allowedTo('admin'));
 couponRouter
     .route('/')
-    .post(protectedRoutes, allowedTo('admin'),createCoupon)// For Now i assume that admin will create coupon code 
+    .post(protectedRoutes, allowedTo('admin'),createCoupon)// For Now i assume that admin(product owner) will create coupon code 
     .get(protectedRoutes, allowedTo('admin'),getAllCoupons)
 
 couponRouter

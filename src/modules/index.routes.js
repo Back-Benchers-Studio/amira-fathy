@@ -7,8 +7,8 @@ import productRouter from "./product/product.router.js"
 import userRouter from "./user/user.router.js"
 import favlistRouter from "./favlist/favlist.router.js"
 import couponRouter from "./coupon/coupon.router.js"
-
-
+import reviewRouter from "./review/review.router.js"
+import categoryRouter from "./category/category.router.js"
 export function init(app) {
     app.use('/api/v1/products', productRouter)
     app.use('/api/v1/users', userRouter)
@@ -17,6 +17,8 @@ export function init(app) {
     app.use('/api/v1/orders', orderRouter)
     app.use('/api/v1/favlist', favlistRouter)
     app.use('/api/v1/coupon', couponRouter)
+    app.use('/api/v1/reviews', reviewRouter)
+    app.use('/api/v1/categories', categoryRouter)
     app.all('*', (req, res, next) => {
         next(new AppError(`can't find this route: ${req.originalUrl}`), 404)
     })

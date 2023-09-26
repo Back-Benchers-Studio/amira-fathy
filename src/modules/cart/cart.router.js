@@ -6,7 +6,7 @@ const cartRouter = express.Router()
 
 cartRouter
     .route('/')
-    .post(protectedRoutes, allowedTo('user'), cart.addProductToCart)
+    .post(protectedRoutes, allowedTo('user'), cart.addProductToCartNew)
     .get(protectedRoutes, allowedTo('user'), cart.getLoggedUserCart)
 
 cartRouter.post('/applyCoupon', protectedRoutes, allowedTo('user'), cart.applyCoupon)

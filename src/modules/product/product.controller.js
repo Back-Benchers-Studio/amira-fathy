@@ -28,6 +28,7 @@ const getAllProducts = catchAsyncError(async (req, res, next) => {
         .paginate().fields().filter().search().sort()
     //execute query
     let result = await apiFeatures.mongooseQuery
+    console.log(result);
     res.status(200).json({ message: "success", page: apiFeatures.page, result })
 })
 // get specific product

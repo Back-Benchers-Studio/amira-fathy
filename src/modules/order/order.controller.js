@@ -22,6 +22,7 @@ const createCashOrder = catchAsyncError(async (req, res, next) => {
         cartItems: cart.cartItems,
         totalOrderPrice,
         shippingAddress: req.body.shippingAddress,
+        phone:req.body.phone
     })
     await order.save()
 

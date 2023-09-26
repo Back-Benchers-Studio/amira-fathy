@@ -23,16 +23,16 @@ const productSchema = mongoose.Schema({
         type: Number,
         min: 0
     },
-    // ratingAvg: {
-    //     type: Number,
-    //     min: [1, 'rating average must be greater then 1'],
-    //     max: [5, 'rating average must be less then 1']
-    // },
-    // ratingCount: {
-    //     type: Number,
-    //     default: 0,
-    //     min: 0
-    // },
+    ratingAvg: {
+        type: Number,
+        min: [1, 'rating average must be greater then 1'],
+        max: [5, 'rating average must be less then 5']
+    },
+    ratingCount: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
     description: {
         type: String,
         minLength: [5, 'too short product description'],
@@ -54,17 +54,19 @@ const productSchema = mongoose.Schema({
     imgCover: String,
     images: [String],
     
-}, { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true }, })
+}, { timestamps: true,
+     toJSON: { virtuals: true }, 
+     toObject: { virtuals: true }, })
 
 
-// productSchema.virtual('ali', {
+// productSchema.virtual('reviews', {
 //     ref: 'review',
 //     localField: '_id',
 //     foreignField: 'product',
 // });
 
 // productSchema.pre(/^find/, function () {
-//     this.populate('ali')
+//     this.populate('reviews')
 // })
 
 productSchema.post('init', function (doc) {

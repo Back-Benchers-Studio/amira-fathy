@@ -10,34 +10,33 @@ const orderSchema = mongoose.Schema({
             quantity: Number,
             price: Number
         }
-    ],
-    totalOderPrice: Number,
+    ], 
+    totalOrderPrice: Number,// price of all products in cart with or without discounts
+    phone:{ type: String, required: [true, 'Phone is required'] },
     shippingAddress: {
         street: { type: String, required: [true, 'Street is required'] },
-        city: { type: String, required: [true, 'City is required'] },
-        phone: { type: String, required: [true, 'Phone is required'] }
+        city: { type: String, required: [true, 'City is required'] }
       },
-    // shippingAddress: {
-    //     street: String,
-    //     city: String,
-    //     phone: String,
-    //     required: [true, 'shipping address is required']
-    // },
     paymentMethod: {
         type: String,
         enum: ['card', 'cash'],
         default: 'cash'
     },
-    isPaid: {
-        type: Boolean,
-        default: false
+    status: {
+        type: String,
+        enum: ['placed', 'recieved','onWay'],
+        default: 'placed'
     },
-    paidAt: Date,
-    isDelivered: {
-        type: Boolean,
-        default: false
-    },
-    deliveredAt: Date,
+    // isPaid: {
+    //     type: Boolean,
+    //     default: false
+    // },
+    // paidAt: Date,
+    // isDelivered: {
+    //     type: Boolean,
+    //     default: false
+    // },
+    // deliveredAt: Date,
 
 
 }, { timestamps: true })
