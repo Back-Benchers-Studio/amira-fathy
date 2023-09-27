@@ -22,7 +22,7 @@ const createCategory = catchAsyncError(async (req, res, next) => {
 //     });
 
 // })
-req.body.slug = slugify(req.body.title)
+req.body.slug = slugify(req.body.name)
 let result = new categoryModel(req.body)
 await result.save()
 res.status(201).json({ message: "success", result })

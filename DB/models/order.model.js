@@ -7,7 +7,8 @@ const orderSchema = mongoose.Schema({
     cartItems: [
         {
             product: { type: mongoose.Types.ObjectId, ref: 'product' },
-            quantity: Number,
+            category: { type: mongoose.Types.ObjectId, ref: 'category' },
+            // quantity: Number,
             price: Number
         }
     ], 

@@ -10,27 +10,29 @@ import { couponModel } from "../../../DB/models/coupon.model.js";
 function calcTotalPrice(cart) {
     let totalPrice = 0;
     cart.cartItems.forEach(elm => {
-        totalPrice += elm.quantity * elm.price
+        // totalPrice += elm.quantity * elm.price
+        totalPrice += elm.price
+
     })
-    cart.totalPrice = totalPrice
+    cart.totalPrice = cart.quantity * totalPrice
 }
-// add item to cart
+
 
 const addProductToCartNew = catchAsyncError(async (req, res, next) => {
-    const requestedQuantity = req.body.quantity || 1;
+    const requestedQuantity =  1;
 
     // check if product exists
     const product = await productModel.findById(req.body.product).select('price quantity');
     if (!product) {
         return next(new AppError('Product not found', 404));
     }
-    // quantity restriction
-    if (requestedQuantity <= 0) {
-        return next(new AppError('Invalid quantity', 400));
-    }
-    if (product.quantity < requestedQuantity) {
-        return next(new AppError('Insufficient stock quantity', 400));
-    }
+    // // quantity restriction
+    // if (requestedQuantity <= 0) {
+    //     return next(new AppError('Invalid quantity', 400));
+    // }
+    // if (product.quantity < requestedQuantity) {
+    //     return next(new AppError('Insufficient stock quantity', 400));
+    // }
     const price = product.price;
 
     // Check if cart exists for the user
@@ -40,26 +42,61 @@ const addProductToCartNew = catchAsyncError(async (req, res, next) => {
         // Create a new cart if it doesn't exist
         let cart = new cartModel({
             user: req.user._id,
-            cartItems: [{ product: req.body.product, quantity: requestedQuantity, price }],
+            cartItems: [{ product: req.body.product, price }],
         });
         calcTotalPrice(cart)
         await cart.save()
        return res.status(201).json({ message: "success", cart })
-
-    } else {
-
-        // Check if the product already exists in the cart
-        const existingCartItem = isCartExist.cartItems.find((item) => item.product.toString() === req.body.product);
-
-        if (existingCartItem) {
-            // Update the quantity of the existing product in the cart
-            existingCartItem.quantity += requestedQuantity;
-        } else {
-            // Add the new product to the cart
-            isCartExist.cartItems.push({ product: req.body.product, quantity: requestedQuantity, price });
-        }
     }
-    calcTotalPrice(isCartExist);
+    let isFound= false;
+    
+    let bodyCategory = await productModel.findById(req.body.product).select('category quantity price _id');
+    if(bodyCategory.quantity < isCartExist.quantity){
+        return next(new AppError('Insufficient stock quantity', 400));
+    }
+
+    for(let i=0;i<isCartExist.cartItems.length;i++){
+        let elmCategory =  await productModel.findById(isCartExist.cartItems[i].product).select('category');
+
+        if (elmCategory.category.toString() == bodyCategory.category.toString()) {   
+
+            console.log("hereeee")
+            req.body.category = bodyCategory.category;
+            req.body.price = bodyCategory.price;
+            req.body._id = bodyCategory._id;
+
+            isCartExist.cartItems[i] = req.body;
+
+         
+            isFound = true;
+            break;
+        }
+
+    }
+    console.log(isFound);
+
+    if(!isFound){
+        req.body.category = bodyCategory.category;
+        req.body.price = bodyCategory.price;
+        req.body._id = bodyCategory._id;
+        isCartExist.cartItems.push(req.body)
+    }
+
+    console.log(isCartExist.cartItems);
+    // if (item) {
+    //     // item.quantity += req.body.quantity || 1
+    //     if(item.category != req.body.category){
+    //         isCartExist.cartItems.push(req.body)
+    //     }else{
+
+    //     }
+    // }
+    //  else {
+    //     isCartExist.cartItems.push(req.body)
+    // }
+
+    
+    calcTotalPrice(isCartExist)
     if (isCartExist.discount) {
 
         isCartExist.totalPriceAfterDiscount = isCartExist.totalPrice - (isCartExist.totalPrice * isCartExist.discount) / 100
@@ -119,16 +156,17 @@ const removeProductFromCart = catchAsyncError(async (req, res, next) => {
 const updateQuantity = catchAsyncError(async (req, res, next) => {
     const requestedQuantity = req.body.quantity;
     //  check if product exists
-    const product = await productModel.findById(req.params.id).select('price quantity');
-    if (!product) {
-        return next(new AppError('Product not found', 404));
-    }
+    // const product = await productModel.findById(req.params.id).select('price quantity');
+    // if (!product) {
+    //     return next(new AppError('Product not found', 404));
+    // }
+
     if (requestedQuantity <= 0) {
         return next(new AppError('Invalid quantity', 400));
     }
-    if (product.quantity < requestedQuantity) {
-        return next(new AppError('Insufficient stock quantity', 400));
-    }
+    // if (product.quantity < requestedQuantity) {
+    //     return next(new AppError('Insufficient stock quantity', 400));
+    // }
 
     let isCartExist = await cartModel.findOne({ user: req.user._id });
 
@@ -136,13 +174,27 @@ const updateQuantity = catchAsyncError(async (req, res, next) => {
         return next(new AppError('Cart not found', 404));
     }
     // Find the cart item for the specified product that you want to edit the quantity
-    let item = isCartExist.cartItems.find((elm) => elm.product.toString() === req.params.id);
+    // let item = isCartExist.cartItems.find((elm) => elm.product.toString() === req.params.id);
+    
 
-    if (!item) {
-        return next(new AppError('Product not found in cart', 404));
+    for(let i=0;i<isCartExist.cartItems.length;i++){
+        const product = await productModel.findById(isCartExist.cartItems[i].product._id).select('price quantity');
+        if(product.quantity < requestedQuantity){
+            return next(new AppError('Insufficient stock quantity', 400));
+        }
     }
+
+    // isCartExist.cartItems.find(async (elm) => {
+
+    //     // elm.quantity = requestedQuantity
+    // })
+
+    isCartExist.quantity = requestedQuantity;
+    // if (!item) {
+    //     return next(new AppError('Product not found in cart', 404));
+    // }
     // Update the product quantity 
-    item.quantity = requestedQuantity;
+    // item.quantity = requestedQuantity;
     calcTotalPrice(isCartExist);
     if (isCartExist.discount) {
         isCartExist.totalPriceAfterDiscount = isCartExist.totalPrice - (isCartExist.totalPrice * isCartExist.discount) / 100;

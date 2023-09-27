@@ -5,6 +5,8 @@ import { ApiFeatures } from "../../utils/ApiFeatures.js";
 import { cartModel } from "../../../DB/models/cart.model.js";
 import { productModel } from "../../../DB/models/product.model.js";
 import { orderModel } from "../../../DB/models/order.model.js";
+import { categoryModel } from "../../../DB/models/category.model.js";
+
 
 import Stripe from 'stripe';
 const stripe = new Stripe('sk_test_51M6FiXIjUf20zM1DKQHQUeoevfN2Y2TiS0HJzSdJcc4gu5AYarmmHJk8Y5iMH4lEwW1l7bgs7jCqRA4LvROuLHcd00OIA0P6BL');
@@ -13,6 +15,13 @@ const stripe = new Stripe('sk_test_51M6FiXIjUf20zM1DKQHQUeoevfN2Y2TiS0HJzSdJcc4g
 const createCashOrder = catchAsyncError(async (req, res, next) => {
     //1)  get cart  (carTID)
     const cart = await cartModel.findById(req.params.id);
+
+    //Check if all categories in the cart
+    const category = await categoryModel.find({});
+    if(category.length !== cart.cartItems.length){
+        return next(new AppError('Please add all categories to the cart', 400));
+    }
+    
     //2)  cal total price
     const totalOrderPrice = cart.totalPriceAfterDiscount ?
         cart.totalPriceAfterDiscount : cart.totalPrice
@@ -31,7 +40,7 @@ const createCashOrder = catchAsyncError(async (req, res, next) => {
         let options = cart.cartItems.map(item => ({
             updateOne: {
                 filter: { _id: item.product },
-                update: { $inc: { quantity: -item.quantity, sold: item.quantity } }
+                update: { $inc: { quantity: -cart.quantity, sold: cart.quantity } }
             }
         }))
 

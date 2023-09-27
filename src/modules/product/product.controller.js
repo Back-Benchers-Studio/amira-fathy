@@ -3,6 +3,8 @@ import { catchAsyncError } from "../../middleware/catchAsyncError.js";
 import { AppError } from "../../utils/AppError.js";
 import { deleteOne } from "../handlers/factor.handler.js";
 import { productModel } from "../../../DB/models/product.model.js";
+import { categoryModel } from "../../../DB/models/category.model.js";
+
 import { ApiFeatures } from "../../utils/ApiFeatures.js";
 
 // add product
@@ -17,7 +19,10 @@ const createProduct = catchAsyncError(async (req, res, next) => {
     // })
     // req.body.images=imgs
     
-     req.body.slug = slugify(req.body.title)
+    req.body.slug = slugify(req.body.title)
+    let category =  await categoryModel.find({"name":`${req.body.category}`}).select('_id')
+    req.body.category  = category[0]._id;
+    console.log(category[0]._id);
     let result = new productModel(req.body)
     await result.save()
     res.status(201).json({ message: "success", result })

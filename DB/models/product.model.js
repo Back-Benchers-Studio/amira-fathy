@@ -14,6 +14,11 @@ const productSchema = mongoose.Schema({
         lowercase: true,
         required: true
     },
+
+    category: {
+         type: mongoose.Types.ObjectId, ref: 'category' ,
+        required: true
+    },
     price: {
         type: Number,
         required: [true, 'product price is required.'],

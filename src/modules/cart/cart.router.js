@@ -16,7 +16,9 @@ cartRouter.post('/applyCoupon', protectedRoutes, allowedTo('user'), cart.applyCo
 cartRouter
     .route('/:id')
     .delete(protectedRoutes, allowedTo('user'), cart.removeProductFromCart)
-    .put(protectedRoutes, allowedTo('user'), cart.updateQuantity)
+    // .put(protectedRoutes, allowedTo('user'), cart.updateQuantity)
+
+cartRouter.route('/updatequantity').post(protectedRoutes, allowedTo('user'), cart.updateQuantity)
 
 
 export default cartRouter
