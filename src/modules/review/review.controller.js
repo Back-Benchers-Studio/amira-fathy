@@ -31,7 +31,10 @@ const createReview = catchAsyncError(async (req, res, next) => {
     const order = await orderModel.findOne({
         user: req.user._id,
          "cartItems.product": productId,
-         status: 'recieved'
+         $or: [
+            { paymentMethod: "cash", status: "received" },
+            { paymentMethod: "card", status: "placed" }
+        ]
     })
 
     console.log(order)

@@ -15,8 +15,8 @@ const orderSchema = mongoose.Schema({
     totalOrderPrice: Number,// price of all products in cart with or without discounts
     phone:{ type: String, required: [true, 'Phone is required'] },
     shippingAddress: {
-        street: { type: String, required: [true, 'Street is required'] },
-        city: { type: String, required: [true, 'City is required'] }
+        type: String,
+         required: [true, 'shippingAddress is required'] ,
       },
     paymentMethod: {
         type: String,
@@ -25,7 +25,7 @@ const orderSchema = mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['placed', 'recieved','onWay','cancelled'],
+        enum: ['placed', 'received','onWay','cancelled'],
         default: 'placed'
     },
     quantity: {

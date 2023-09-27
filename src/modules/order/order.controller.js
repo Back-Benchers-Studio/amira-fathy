@@ -17,7 +17,6 @@ const createCashOrder = catchAsyncError(async (req, res, next) => {
     //1)  get cart  (carTID)
     const cart = await cartModel.findById(req.params.id);  
     if(!cart) return next(new AppError('NO CART FOUND',404))
-
     //Check if cart is for the user
     // console.log(cart.user.toString() , req.user._id.toString());
     if(cart.user.toString() !== req.user._id.toString()){
@@ -120,7 +119,7 @@ const createCheckOutSession = catchAsyncError(async (req, res, next) => {
         return next(new AppError('error in cart id', 404))
     }
 
-    const { street, city, phone } = req.body.shippingAddress;    
+    //const { street, city, phone } = req.body.shippingAddress;    
     let session = await stripe.checkout.sessions.create({
         line_items: [
             {
@@ -131,7 +130,7 @@ const createCheckOutSession = catchAsyncError(async (req, res, next) => {
                         name: req.user.name
                     }
                 },
-                quantity: 1
+                quantity: cart.quantity//cart  quantity 
             }
         ],
         mode: 'payment',
@@ -147,7 +146,9 @@ const createCheckOutSession = catchAsyncError(async (req, res, next) => {
         //     city,
         //     phone,
         // },
-        metadata: req.body.shippingAddress
+        metadata: {shippingAdress:req.body.shippingAddress,
+            phone:req.body.phone
+        }
     },{
         // Pass the API key in the Authorization header
         apiKey: process.env.STRIPE_KEY,
@@ -217,7 +218,7 @@ const cancelOrder = catchAsyncError(async (req, res, next) => {
             ///////////////////////////////////
             ///////////////////////////////////
             ///////////////////////////////////
-            // Don't to store refund variable//
+            // Don't to store refund variable //
             ///////////////////////////////////
             ///////////////////////////////////
             ///////////////////////////////////

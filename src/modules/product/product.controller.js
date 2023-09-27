@@ -29,12 +29,34 @@ const createProduct = catchAsyncError(async (req, res, next) => {
 })
 // get all products
 const getAllProducts = catchAsyncError(async (req, res, next) => {
-    let apiFeatures = new ApiFeatures(productModel.find(), req.query)
-        .paginate().fields().filter().search().sort()
+    let apiFeatures = new ApiFeatures(productModel.find().populate([{ path: 'review' }]),
+    req.query)
+        .paginate()
+        .fields()
+        .filter()
+        .search()
+        .sort()
     //execute query
-    let result = await apiFeatures.mongooseQuery
-    console.log(result);
-    res.status(200).json({ message: "success", page: apiFeatures.page, result })
+    // let result = await apiFeatures.mongooseQuery
+    // console.log(result);
+
+    const products = await apiFeatures.mongooseQuery
+    let avg = 0
+    let calc = 0
+    for (const product of products) {
+      if (product.review) {
+        for (const review of product.review) {
+          console.log(review.ratings)
+          avg += review.ratings
+        }
+        calc = avg / product.review.length
+        product.ratingAvg = Number.parseFloat(calc).toFixed(2)
+        await product.save()
+      }
+      product.ratingAvg = 1
+      await product.save()
+    }
+    res.status(200).json({ message: "success", page: apiFeatures.page, products })
 })
 // get specific product
 const getProduct = catchAsyncError(async (req, res, next) => {

@@ -18,7 +18,7 @@ cartRouter
     .delete(protectedRoutes, allowedTo('user'), cart.removeProductFromCart)
     // .put(protectedRoutes, allowedTo('user'), cart.updateQuantity)
 
-cartRouter.route('/updatequantity').post(protectedRoutes, allowedTo('user'), cart.updateQuantity)
+cartRouter.route('/updatequantity').put(protectedRoutes, allowedTo('user'), cart.updateQuantity)
 
 
 export default cartRouter
