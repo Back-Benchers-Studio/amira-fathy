@@ -20,7 +20,7 @@ import { orderModel } from "../../../DB/models/order.model.js";
 
 
 const createReview = catchAsyncError(async (req, res, next) => {
-    const { productId } = req.params;
+    const productId  = req.params.id;
     // req.body.user = req.user._id;
     // Check if the user has already reviewed the product
     const isReview = await reviewModel.findOne({ user: req.user._id, product: productId });
@@ -30,8 +30,8 @@ const createReview = catchAsyncError(async (req, res, next) => {
     // Check if the user has created an order with the product and its status is received
     const order = await orderModel.findOne({
         user: req.user._id,
-        "cartItems.product": productId,//-----> checkkkk
-        status: 'recieved'
+         "cartItems.product": productId,
+         status: 'recieved'
     })
 
     console.log(order)

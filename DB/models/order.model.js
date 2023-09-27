@@ -25,19 +25,23 @@ const orderSchema = mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['placed', 'recieved','onWay'],
+        enum: ['placed', 'recieved','onWay','cancelled'],
         default: 'placed'
     },
-    // isPaid: {
-    //     type: Boolean,
-    //     default: false
-    // },
-    // paidAt: Date,
-    // isDelivered: {
-    //     type: Boolean,
-    //     default: false
-    // },
-    // deliveredAt: Date,
+    quantity: {
+        type: Number,
+        default: 1
+    },
+    isPaid: {
+        type: Boolean,
+        default: false
+    },
+    paidAt: Date,
+    isDelivered: {
+        type: Boolean,
+        default: false
+    },
+    deliveredAt: Date,
 
 
 }, { timestamps: true })

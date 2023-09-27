@@ -37,8 +37,14 @@ const addProductToCartNew = catchAsyncError(async (req, res, next) => {
 
     // Check if cart exists for the user
     let isCartExist = await cartModel.findOne({ user: req.user._id });
+    let bodyCategory = await productModel.findById(req.body.product).select('category quantity price _id');
 
     if (!isCartExist) {
+
+        if(bodyCategory.quantity < 1){
+            return next(new AppError('Insufficient stock quantity', 400));
+        }
+
         // Create a new cart if it doesn't exist
         let cart = new cartModel({
             user: req.user._id,
@@ -48,13 +54,12 @@ const addProductToCartNew = catchAsyncError(async (req, res, next) => {
         await cart.save()
        return res.status(201).json({ message: "success", cart })
     }
-    let isFound= false;
     
-    let bodyCategory = await productModel.findById(req.body.product).select('category quantity price _id');
     if(bodyCategory.quantity < isCartExist.quantity){
         return next(new AppError('Insufficient stock quantity', 400));
     }
-
+    
+    let isFound= false;
     for(let i=0;i<isCartExist.cartItems.length;i++){
         let elmCategory =  await productModel.findById(isCartExist.cartItems[i].product).select('category');
 
@@ -178,9 +183,9 @@ const updateQuantity = catchAsyncError(async (req, res, next) => {
     
 
     for(let i=0;i<isCartExist.cartItems.length;i++){
-        const product = await productModel.findById(isCartExist.cartItems[i].product._id).select('price quantity');
+        const product = await productModel.findById(isCartExist.cartItems[i].product._id).select('title price quantity');
         if(product.quantity < requestedQuantity){
-            return next(new AppError('Insufficient stock quantity', 400));
+            return next(new AppError(`Insufficient stock quantity for ${product.title}`, 400));
         }
     }
 
