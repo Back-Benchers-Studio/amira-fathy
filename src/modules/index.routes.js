@@ -10,6 +10,8 @@ import couponRouter from "./coupon/coupon.router.js"
 import reviewRouter from "./review/review.router.js"
 import categoryRouter from "./category/category.router.js"
 import sessionRouter from "./session/session.router.js"
+import product_returnRouter from "./product_return/product_return.router.js"
+
 export function init(app) {
     app.use('/api/v1/products', productRouter)
     app.use('/api/v1/users', userRouter)
@@ -21,6 +23,8 @@ export function init(app) {
     app.use('/api/v1/reviews', reviewRouter)
     app.use('/api/v1/categories', categoryRouter)
     app.use('/api/v1/session', sessionRouter)
+    app.use('/api/v1/return', product_returnRouter)
+
     app.all('*', (req, res, next) => {
         next(new AppError(`can't find this route: ${req.originalUrl}`), 404)
     })

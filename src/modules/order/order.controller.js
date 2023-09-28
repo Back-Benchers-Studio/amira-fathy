@@ -7,22 +7,29 @@ import { productModel } from "../../../DB/models/product.model.js";
 import { orderModel } from "../../../DB/models/order.model.js";
 import { categoryModel } from "../../../DB/models/category.model.js";
 import { sessionModel } from "../../../DB/models/sessions.model.js";
+import { refundModel } from "../../../DB/models/refund.model.js";
 
 
 import Stripe from 'stripe';
 const stripe = new Stripe(`${process.env.STRIPE_KEY}`);
 
+
+const createOrder = catchAsyncError(async (req, res, next) =>{
+    if(req.body.paymentMethod === 'card'){
+        createCheckOutSession(req, res, next);
+    }else if (req.body.paymentMethod === 'cash'){
+        createCashOrder(req, res, next);
+    }else{
+        return next(new AppError('Invalid payment method', 400));
+    }
+})
+
 // cash order option
 const createCashOrder = catchAsyncError(async (req, res, next) => {
     //1)  get cart  (carTID)
-    const cart = await cartModel.findById(req.params.id);  
+    const cart = await cartModel.findOne({user:req.user._id});  
     if(!cart) return next(new AppError('NO CART FOUND',404))
-    //Check if cart is for the user
-    // console.log(cart.user.toString() , req.user._id.toString());
-    if(cart.user.toString() !== req.user._id.toString()){
-        return next(new AppError('This cart is not for this user', 403));
-    }
-    
+ 
     //Check if all categories in the cart
     const category = await categoryModel.find({});
     if(category.length !== cart.cartItems.length){
@@ -30,7 +37,6 @@ const createCashOrder = catchAsyncError(async (req, res, next) => {
     }
     
     //check if stock still available
-
     for(let i=0; i<cart.cartItems.length; i++){
         const product = await productModel.findById(cart.cartItems[i].product);
         if(product.quantity < cart.quantity){
@@ -41,6 +47,7 @@ const createCashOrder = catchAsyncError(async (req, res, next) => {
     //2)  cal total price
     const totalOrderPrice = cart.totalPriceAfterDiscount ?
         cart.totalPriceAfterDiscount : cart.totalPrice
+
     //3) create order
     const order = new orderModel({
         user: req.user._id,
@@ -49,6 +56,7 @@ const createCashOrder = catchAsyncError(async (req, res, next) => {
         shippingAddress: req.body.shippingAddress,
         phone:req.body.phone,
         quantity:cart.quantity,
+        deliveredAt: Math.floor(Date.now() / 1000),
     })
     await order.save()
 
@@ -62,8 +70,9 @@ const createCashOrder = catchAsyncError(async (req, res, next) => {
         }))
 
         await productModel.bulkWrite(options)
+
         //5) clear user cart
-        await cartModel.findByIdAndDelete(req.params.id)
+        await cartModel.findOneAndDelete({user:req.user._id})
 
         return res.status(201).json({ message: "success", order })
     } else {
@@ -87,18 +96,25 @@ const getAllOrders = catchAsyncError(async (req, res, next) => {
 // checkout order option
 const createCheckOutSession = catchAsyncError(async (req, res, next) => {
     //1)  get cart  (carTID)
-    const cart = await cartModel.findById(req.params.id);
+    const cart = await cartModel.findOne({user:req.user._id});
     if(!cart) return next(new AppError('NO CART FOUND',404))
 
-    //Check if cart is for the user
-    // console.log(cart.user.toString() , req.user._id.toString());
-    if(cart.user.toString() !== req.user._id.toString()){
-        return next(new AppError('This cart is not for this user', 403));
+    //Check if all categories in the cart
+    const category = await categoryModel.find({});
+    if(category.length !== cart.cartItems.length){
+        return next(new AppError('Please add all categories to the cart', 400));
+    }
+    
+    for(let i=0; i<cart.cartItems.length; i++){
+        const product = await productModel.findById(cart.cartItems[i].product);
+        if(product.quantity < cart.quantity){
+            return next(new AppError(`Insufficient stock quantity for ${product.title}`, 400));
+        }
     }
 
     //2)  cal total price
     const totalOrderPrice = cart.totalPriceAfterDiscount ?
-        cart.totalPriceAfterDiscount : cart.totalPrice
+    cart.totalPriceAfterDiscount : cart.totalPrice
 
     //3) create order
     const order = new orderModel({
@@ -107,7 +123,8 @@ const createCheckOutSession = catchAsyncError(async (req, res, next) => {
         totalOrderPrice,
         paymentMethod:'card',
         shippingAddress: req.body.shippingAddress,
-        phone:req.body.phone
+        phone:req.body.phone,
+        deliveredAt: Math.floor(Date.now() / 1000),
         
     })
     let orderID=null;
@@ -119,7 +136,6 @@ const createCheckOutSession = catchAsyncError(async (req, res, next) => {
         return next(new AppError('error in cart id', 404))
     }
 
-    //const { street, city, phone } = req.body.shippingAddress;    
     let session = await stripe.checkout.sessions.create({
         line_items: [
             {
@@ -135,17 +151,12 @@ const createCheckOutSession = catchAsyncError(async (req, res, next) => {
         ],
         mode: 'payment',
         success_url: "http://localhost:3000/api/v1/session/?session_id={CHECKOUT_SESSION_ID}",// will change
-        // cancel_url: "http://localhost:3000/api/v1/session/?session_id={CHECKOUT_SESSION_ID}", // will change
         customer_email: req.user.email,
         client_reference_id: orderID,
         shipping_address_collection: {
             allowed_countries: ['EG'], // Specify the allowed countries for shipping
         },
-        // shipping_address: {
-        //     line1: street,
-        //     city,
-        //     phone,
-        // },
+        
         metadata: {shippingAdress:req.body.shippingAddress,
             phone:req.body.phone
         }
@@ -166,13 +177,14 @@ const createCheckOutSession = catchAsyncError(async (req, res, next) => {
             }
         }))
             await productModel.bulkWrite(options)
-            //5) clear user cart
-            await cartModel.findByIdAndDelete(req.params.id)
+        //5) clear user cart
+        await cartModel.findOneAndDelete({user:req.user._id})
 
     let sessionmodel = new sessionModel({
         session_id: session.id,
         order: orderID,
         user: req.user._id,
+        expires_at: session.expires_at,
     })
     await sessionmodel.save();
     console.log(session.payment_intent);
@@ -196,8 +208,8 @@ const cancelOrder = catchAsyncError(async (req, res, next) => {
     if(order.status === 'cancelled'){
         return next(new AppError('Order already cancelled', 400));
     }
-    if(order.status === 'recieved'){
-        return next(new AppError('Cannot cancel recieved product', 400));
+    if(order.status === 'recieved' || order.status === 'returned'){
+        return next(new AppError('Cannot cancel recieved or returned product', 400));
     }
 
     //increment quantity and decrement sold
@@ -215,15 +227,17 @@ const cancelOrder = catchAsyncError(async (req, res, next) => {
                 apiKey: process.env.STRIPE_KEY,
             });
 
-            ///////////////////////////////////
-            ///////////////////////////////////
-            ///////////////////////////////////
-            // Don't to store refund variable //
-            ///////////////////////////////////
-            ///////////////////////////////////
-            ///////////////////////////////////
+            let refundobj = new refundModel({
+                paymentIntent: session.intent,
+                orderId: order._id,
+                RefundObject: {refund}.refund,
+            })
+            await refundobj.save();
 
         }
+        session.isHandled = true;
+        await session.save();
+
     }
 
     let options = order.cartItems.map(item => ({
@@ -237,6 +251,8 @@ const cancelOrder = catchAsyncError(async (req, res, next) => {
     order.status = 'cancelled';
     await order.save();
 
+
+
     res.status(200).json({ message: 'Order was cancelled successfully'});
 })
 
@@ -247,5 +263,6 @@ export {
     getAllOrders,
     createCheckOutSession,
     cancelOrder,
+    createOrder,
 }
 

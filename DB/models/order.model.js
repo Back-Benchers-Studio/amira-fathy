@@ -25,7 +25,7 @@ const orderSchema = mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['placed', 'received','onWay','cancelled'],
+        enum: ['placed', 'received','onWay','cancelled','returned'],
         default: 'placed'
     },
     quantity: {
@@ -41,7 +41,10 @@ const orderSchema = mongoose.Schema({
         type: Boolean,
         default: false
     },
-    deliveredAt: Date,
+    deliveredAt: {
+        type:Number,
+        // default: Math.floor(Date.now() / 1000)
+    },
 
 
 }, { timestamps: true })

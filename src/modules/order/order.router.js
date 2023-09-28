@@ -12,12 +12,16 @@ orderRouter.get('/all', order.getAllOrders)
 
 // cash order option
 orderRouter
-    .route('/:id')
-    .post(protectedRoutes, allowedTo('user'), order.createCashOrder)
+    .route('/')
+    // .post(protectedRoutes, allowedTo('user'), order.createCashOrder)
+    .post(protectedRoutes, allowedTo('user'), order.createOrder)
+
     .put(protectedRoutes, order.cancelOrder)
 
+
+
 // checkout order option
-orderRouter.post('/checkOut/:id', protectedRoutes, allowedTo('user'), order.createCheckOutSession)
+// orderRouter.post('/checkOut/:id', protectedRoutes, allowedTo('user'), order.createCheckOutSession)
 
 
 

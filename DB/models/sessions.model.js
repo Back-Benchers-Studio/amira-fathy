@@ -18,10 +18,18 @@ const sessionSchema = mongoose.Schema({
         type: String,
         default:''
     },
+    expires_at: {
+        type: Number,
+        required: [true, 'expires_at is required'],
+    },
     isSuccess: {
         type: Boolean,
         default:false
-    }  
+    },
+    isHandled: {
+        type: Boolean,
+        default:false
+    },
 }, { timestamps: true })
 
 export const sessionModel = mongoose.model('session', sessionSchema)

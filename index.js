@@ -4,7 +4,6 @@ import dotenv from "dotenv"
 import morgan from "morgan";
 import dbConnection from './DB/DBConnection.js'
 import { init } from './src/modules/index.routes.js';
-
 import * as passportSetup from './src/utils/passportSetup.js'
 import Stripe from 'stripe';
 const stripe = new Stripe('sk_test_51M6FiXIjUf20zM1DKQHQUeoevfN2Y2TiS0HJzSdJcc4gu5AYarmmHJk8Y5iMH4lEwW1l7bgs7jCqRA4LvROuLHcd00OIA0P6BL');
@@ -133,3 +132,5 @@ init(app)
 
 dbConnection()
 app.listen(process.env.PORT || port, () => console.log(`Example app listening on port ${port}!`))
+
+
