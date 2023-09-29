@@ -16,6 +16,7 @@ productRouter
     .get(product.getProduct)
     .put(protectedRoutes, allowedTo('admin'),product.updateProduct)
     .delete(protectedRoutes, allowedTo('admin'),product.deleteProduct)
+    .post(protectedRoutes,allowedTo('admin'),product.setCompatibility)
 
 
 export default productRouter

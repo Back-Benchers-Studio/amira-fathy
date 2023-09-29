@@ -57,8 +57,14 @@ const productSchema = mongoose.Schema({
         min: 0
     },
     //imgCover: String,
-    images: [String],
+    images: [String], 
+    compatibility:{
+        type:[Object],
+        default:[]
+    },
+
     
+
 }, 
 { timestamps: true,
      toJSON: { virtuals: true }, 
