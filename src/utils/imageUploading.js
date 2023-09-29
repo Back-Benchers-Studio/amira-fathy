@@ -13,7 +13,6 @@ let options = (folderName) => {
         }
     }
     const upload = multer({ storage, fileFilter })
-    console.log("upload");
     return upload
 }
 export const uploadSingleFile = (fieldName, folderName) => options(folderName).single(fieldName)

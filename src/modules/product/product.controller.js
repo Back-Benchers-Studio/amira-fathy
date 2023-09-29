@@ -5,33 +5,19 @@ import { deleteOne } from "../handlers/factor.handler.js";
 import { productModel } from "../../../DB/models/product.model.js";
 import { categoryModel } from "../../../DB/models/category.model.js";
 import { ApiFeatures } from "../../utils/ApiFeatures.js";
-// import cloudinary from "cloudinary";
 import  cloudinary  from "../../utils/cloudinary.js";
 
 // add product
 const createProduct = catchAsyncError(async (req, res, next) => {
-  // console.log(req.files);
   if (req.files) {
     let imgs = []
-    // req.body.slug = slugify(req.body.title)
     //req.body.imgCover = req.files.imgCover[0].filename
     for (const file of req.files.images) {
       const image = await cloudinary.uploader.upload(file.path)
-     // req.files.images.forEach((img) => {
         imgs.push(image.secure_url)
-     // })
     }
     req.body.images = imgs
   }
-
-    // let imgs = []
-    // req.body.slug = slugify(req.body.title)
-    // req.body.imgCover = req.files.imgCover[0].filename
-    // req.files.images.forEach((img) => {
-    //     imgs.push(img.filename)
-    // })
-    // req.body.images=imgs
-
     req.body.slug = slugify(req.body.title)
     let category = await categoryModel.find({ "name": `${req.body.category}` }).select('_id')
     req.body.category = category[0]._id;
