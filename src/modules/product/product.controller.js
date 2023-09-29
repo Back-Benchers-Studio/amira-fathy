@@ -15,12 +15,12 @@ const createProduct = catchAsyncError(async (req, res, next) => {
     req.body.slug = slugify(req.body.title)
     //req.body.imgCover = req.files.imgCover[0].filename
     for (const file of req.files.images) {
-      const { secure_url } = await cloudinary.uploader.upload(file.path)
+      const image = await cloudinary.uploader.upload(file.path)
      // req.files.images.forEach((img) => {
-        imgs.push(file.filename)
+        imgs.push(image.secure_url)
      // })
-      req.body.images = imgs
     }
+    req.body.images = imgs
   }
 
     // let imgs = []
