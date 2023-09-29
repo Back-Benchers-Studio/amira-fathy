@@ -10,6 +10,11 @@ import cloudinary from "cloudinary";
 
 
 const createCategory = catchAsyncError(async (req, res, next) => {
+    console.log(req.file)
+    if (req.file) {
+        const image =await  cloudinary.uploader.upload(req.file.path )
+        req.body.image =  image.secure_url;
+      }
 //     // cloudinary.uploader.upload(req.file.path).then(async (data) => {
 
 //     //     req.body.slug = slugify(req.body.name)
@@ -24,6 +29,7 @@ const createCategory = catchAsyncError(async (req, res, next) => {
 // })
 req.body.slug = slugify(req.body.name)
 let result = new categoryModel(req.body)
+console.log("controller");
 await result.save()
 res.status(201).json({ message: "success", result })
 

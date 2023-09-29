@@ -5,7 +5,7 @@ import { uploadMixOfFile } from "../../middleware/fileUpload.js"
 import { allowedTo, protectedRoutes } from "../auth/auth.controller.js"
 
 const productRouter = express.Router()
-let arrayOfFields = [{ name: 'imgCover', maxCount: 1 }, { name: 'images', maxCount: 10 }]
+let arrayOfFields = [{ name: 'imgCover', maxCount: 1 }, { name: 'images', maxCount: 10 }]// Max count images can you upload for one product 
 productRouter
     .route('/')
     .post(protectedRoutes, allowedTo('admin'),uploadMixOfFile(arrayOfFields, 'product'), product.createProduct)
